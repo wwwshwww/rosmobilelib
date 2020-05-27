@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "rosmobilelib"
+version = "0.1.0"
+description = "rosmobilelib"
+authors = ["moyashy <www.shinderu.www@gmail.com>"]
+readme = "README.md"
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+numpy = "^1.18.4"
+roslibpy = "^1.0.0"
+numpy-quaternion = "2019.12.11.22.25.52"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
