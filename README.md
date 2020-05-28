@@ -1,14 +1,15 @@
 # rosmobilelib
 
-Enable to struct robotic action with ROS, the open-source robotic middleware on external. This library make able to run that by Python3 code on external of ROS network and workspace.
+Enable to struct movement robotic action with ROS, the open-source robotic middleware. This library make able to run that by Python3 code on external of ROS network and workspace.
 
 This is depended [roslibpy](https://github.com/gramaziokohler/roslibpy) that allows ROS programing without defining as ROS Node by using [rospy](http://wiki.ros.org/rospy).
 
 ## Main Features
 
-- Manage features to set simply for robotic move.
+- Manage features to set ROS robotic movement simply.
 - Dynamic schedule to Goal with sending/waiting of Action.
 - Provide some feature that use for programming with ROS such as coordinate transformation of **TF**.
+- Give support to synchronize to single callback for needs to subscribed multi topic such as stereo camera system.
 
 ## Installation
 
@@ -21,7 +22,7 @@ pip install rosmobilelib
 or
 
 ```
-pip install rosmobilelib --extra-index-url 
+pip install rosmobilelib --extra-index-url https://test.pypi.org/simple
 ```
 
 ## Documentation
@@ -51,14 +52,14 @@ Define `MobileClient` ofject and wait for to subscribe needs topics.
 ```
 lm2 = lambda r: print('reached goal', r)
 ms = MobileClient(client, lm2, odom_topic='/odom', map_topic='/map')
-ms.wait_for_ready(timeout=80)
+ms.wait_for_ready()
 ```
 
-Use dynamic Schedule. Set goal and make able to execute goals. You can set goal any time not only after call start().
+Use dynamic FCFS scheduler. Set goal and make able to execute goals. You can set goal any time not only after call start().
 
 Details:
 
-- start(), stop(): make scheduling queue executable / inexecutable
+- start(), stop(): make scheduling queue executable/inexecutable
 
 ```
 ms.start()
@@ -69,7 +70,7 @@ ms.set_goal_relative_xy(0.5, 0, is_dynamic=False)
 # set relative pos(x:front:-0.5, y:left:1) based basis vector that decided dynamic after previous executed
 ms.set_goal_relative_xy(-0.5, 1, is_dynamic=True)
 
-# set directly pose
+# set goal directly with world frame's pose
 ms.set_goal(np.quaternion(0,-0.4,-0.6,0), quaternion.from_euler_angles(0,0,1.0))
 
 time.sleep(60)
@@ -77,10 +78,10 @@ time.sleep(60)
 ms.stop()
 ```
 
-There are other way to wait for time until reach goal. Exchange `time.sleep(n)` to `mc.wait_for_goal_accepted()`.
+There are other way to wait for time until reach goal. Exchange `time.sleep(n)` to `ms.wait_for_execute_all()`.
 
 ```
 ...
-mc.wait_for_goal_accepted()
+ms.wait_for_execute_all()
 ...
 ```

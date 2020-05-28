@@ -29,7 +29,7 @@ class MobileClient():
     def is_freetime(self):
         return self.mb_scheduler.state&1
 
-    def wait_for_goal_accepted(self, rate=0.5):
+    def wait_for_execute_all(self, rate=0.5):
         while not (self.is_freetime and self.is_reached):
             time.sleep(rate)
 
@@ -121,7 +121,7 @@ class MobileClient():
     ## set goal message that simple ahead pose
     def set_goal_relative_xy(self, x, y, angle=None, is_dynamic=False):
         rel_pos_2d = np.quaternion(0,x,y,0)
-        rel_ori = quaternion.from_euler_angles(0, 0, math.atan2(y,x))
+        rel_ori = quaternion.from_euler_angles(0, 0, math.atan2(x,y))
         pos, ori = self.get_base_pose_from_body(rel_pos_2d, rel_ori*self.orientation)
 
         def inner():
