@@ -3,8 +3,9 @@ import roslibpy as rlp
 import roslibpy.actionlib
 from threading import Timer
 from collections import deque
+import cv2
 
-from typing import List
+from typing import List, Dict
 
 __all__ = ['ActionScheduler', 'TimeSynchronizer']
 
@@ -113,3 +114,24 @@ class TimeSynchronizer():
                 self.listeners[k].queue.popleft()
         
         self.callback(*result)
+
+def ToCv():
+    def __init__(self):
+        self.cvdepth_to_npdepth = {cv2.CV_8U: 'uint8',
+                                    cv2.CV_8S: 'int8',
+                                    cv2.CV_16U: 'uint16',
+                                    cv2.CV_16S: 'int16',
+                                    cv2.CV_32S:'int32',
+                                    cv2.CV_32F:'float32',
+                                    cv2.CV_64F: 'float64'}
+
+    @staticmethod
+    def compressed_imgmsg_to_cv2(self, c_img_msg: Dict) -> np.ndarray:
+        ## use cv2.cvtColor()
+        ## ref: ColorConversionCodes 
+
+        bite_data = ''.join(map(str, c_img_msg['data'])).encode()
+        buf = np.ndarray(shape=(1,len(bite_data)), dtype=np.uint8, buffer=bite_data)
+        
+        return cv2.imdecode(buf, cv2.IMREAD_ANYCOLOR)
+        

@@ -1,4 +1,4 @@
-from .rostools import ActionScheduler, TimeSynchronizer
+from .rostools import ActionScheduler, TimeSynchronizer, ToCv
 
 import roslibpy
 import numpy as np
@@ -6,17 +6,22 @@ import math
 import quaternion # numpy-quaternion
 import time
 
-from typing import Tuple
+from typing import Tuple, List, Dict
 
 class CameraListener():
     def __init__(self, ros_client: roslibpy.Ros, callback: callable, *topics: str, queue_size: int=100, allow_headerless: float=0.1):
-        msg_type = 'sensor_msgs/Image'
+        msg_type = 'sensor_msgs/CompressedImage'
+        self.client_callback = callback
         self.tps = [roslibpy.Topic(ros_client, name, msg_type) for name in topics]
         if len(self.tps) > 1:
-            self.subscriber = TimeSynchronizer(self.tps, callback, queue_size, allow_headerless)
+            self.subscriber = TimeSynchronizer(self.tps, self.msg_to_cv2, queue_size, allow_headerless)
         else:
             self.subscriber = roslibpy.Topic(ros_client, self.tps[0], msg_type)
-            self.subscriber.subscribe(callback)
+            self.subscriber.subscribe(self.msg_to_cv2)
+    
+    def msg_to_cv2(self, *msgs: Dict):
+        ims = [ToCv.compressed_imgmsg_to_cv2(m) for m in msgs]
+        self.client_callback(*ims)
 
 ## class that create and send goal of pose to move_base
 class MobileClient():

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rosmobilelib"
-version = "0.1.2"
+version = "0.1.2.1"
 description = "rosmobilelib"
 authors = ["moyash <www.shinderu.www@gmail.com>"]
 readme = "README.md"
@@ -13,6 +13,7 @@ python = "^3.5"
 numpy = "^1.18.4"
 numpy-quaternion = "2019.12.11.22.25.52"
 roslibpy = "^1.1.0"
+opencv-python = "^4.3.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
