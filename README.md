@@ -47,7 +47,7 @@ client.on_ready(lm1)
 client.run()
 ```
 
-Define `MobileClient` ofject and wait for to subscribe needs topics.
+Define `MobileClient` object and wait for to subscribe needs topics.
 
 ```
 lm2 = lambda r: print('reached goal', r)
@@ -71,7 +71,7 @@ ms.set_goal_relative_xy(0.5, 0, is_dynamic=False)
 ms.set_goal_relative_xy(-0.5, 1, is_dynamic=True)
 
 # set goal directly with world frame's pose
-ms.set_goal(np.quaternion(0,-0.4,-0.6,0), quaternion.from_euler_angles(0,0,1.0))
+ms.set_goal(ms.get_vec_q(-0.4,-0.6,0), ms.get_rot_q(0,0,math.pi/2))
 
 time.sleep(60)
 

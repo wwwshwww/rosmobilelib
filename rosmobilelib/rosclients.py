@@ -1,24 +1,36 @@
 from .rostools import ActionScheduler, TimeSynchronizer
 
-import roslibpy as rlp
+import roslibpy
 import numpy as np
 import math
 import quaternion # numpy-quaternion
 import time
 
+from typing import Tuple
+
+class CameraListener():
+    def __init__(self, ros_client: roslibpy.Ros, callback: callable, *topics: str, queue_size: int=100, allow_headerless: float=0.1):
+        msg_type = 'sensor_msgs/Image'
+        self.tps = [roslibpy.Topic(ros_client, name, msg_type) for name in topics]
+        if len(self.tps) > 1:
+            self.subscriber = TimeSynchronizer(self.tps, callback, queue_size, allow_headerless)
+        else:
+            self.subscriber = roslibpy.Topic(ros_client, self.tps[0], msg_type)
+            self.subscriber.subscribe(callback)
+
 ## class that create and send goal of pose to move_base
 class MobileClient():
-    def __init__(self, ros_client: rlp.Ros, goal_callback: callable, odom_topic: str='/odom', map_topic: str='/map'):
+    def __init__(self, ros_client: roslibpy.Ros, goal_callback: callable, odom_topic: str='/odom', map_topic: str='/map'):
         self.ros_client = ros_client
         self.result_callback = goal_callback
         self.mb_scheduler = ActionScheduler(self.ros_client, '/move_base', 'move_base_msgs/MoveBaseAction', self.result_callback)
 
         self.is_get_map = False
-        self.map_listener = rlp.Topic(self.ros_client, map_topic, 'nav_msgs/OccupancyGrid')
+        self.map_listener = roslibpy.Topic(self.ros_client, map_topic, 'nav_msgs/OccupancyGrid')
         self.map_listener.subscribe(self._update_map)
         
         self.is_get_odom = False
-        self.odom_listener = rlp.Topic(self.ros_client, odom_topic, 'nav_msgs/Odometry')
+        self.odom_listener = roslibpy.Topic(self.ros_client, odom_topic, 'nav_msgs/Odometry')
         self.odom_listener.subscribe(self._update_odometry)
 
     @property
@@ -71,11 +83,17 @@ class MobileClient():
         return quaternion.from_euler_angles(to_angle)
 
     @staticmethod
-    def get_base_pose(base_vec: np.quaternion, base_orient: np.quaternion, rel_vec: np.quaternion, rel_orient: np.quaternion) -> (np.quaternion, np.quaternion):
+    def get_base_pose(base_vec: np.quaternion, base_orient: np.quaternion, rel_vec: np.quaternion, rel_orient: np.quaternion) -> Tuple[np.quaternion, np.quaternion]:
         t = (-base_orient) * rel_vec * (-base_orient).conj()
         goal_vec = base_vec+t
         goal_orient = base_orient*rel_orient
         return goal_vec, goal_orient
+
+    def get_vec_q(x: float, y: float, z: float) -> np.quaternion:
+        return np.quaternion(0,x,y,z)
+
+    def get_rot_q(x: float, y: float, z: float) -> np.quaternion:
+        return quaternion.from_euler_angles(x,y,z)
 
     def get_orientation_from_body(self, position: np.quaternion):
         bp = np.quaternion(0, *self.position)
@@ -86,18 +104,18 @@ class MobileClient():
         return self.get_base_pose(bp, self.orientation, position, orientation)
 
     ## map img's (i,j) to base map's (x,y)
-    def get_coordinates_from_index(self, ij: tuple) -> (float, float):
+    def get_coordinates_from_index(self, ij: tuple) -> Tuple[float, float]:
         p = (ij[0]-self.map_resol_i)*self.map_resolution, (ij[1]-self.map_resol_j)*self.map_resolution
         print(f'ij {ij} to {p}')
         return p
 
     ## base map's (x,y) to base map's (i,j)
-    def get_index_from_coordinates(self, xy: tuple) -> (int, int):
+    def get_index_from_coordinates(self, xy: tuple) -> Tuple[int, int]:
         p = self.map_resol_i+int(xy[0]/self.map_resolution), self.map_resol_j+int(xy[1]/self.map_resolution)
         print(f'xy {xy} to {p}')
         return p
 
-    def create_message_move_base_goal(self, position: np.quaternion, orientation: np.quaternion) -> rlp.Message:
+    def create_message_move_base_goal(self, position: np.quaternion, orientation: np.quaternion) -> roslibpy.Message:
         message = {
             'target_pose': {
                 'header': self.map_header,
@@ -116,7 +134,7 @@ class MobileClient():
                 }
             }
         }
-        return rlp.Message(message)
+        return roslibpy.Message(message)
 
     ## set goal message that simple ahead pose
     def set_goal_relative_xy(self, x, y, angle=None, is_dynamic=False):
@@ -128,10 +146,10 @@ class MobileClient():
             if is_dynamic:
                 dpos, dori = self.get_base_pose_from_body(rel_pos_2d, rel_ori*self.orientation)
                 self._log_set(dpos)
-                return self.create_message_move_base_goal((dpos.x, dpos.y, dpos.z), dori)
+                return self.create_message_move_base_goal(dpos, dori)
             else:
                 self._log_set(pos)
-                return self.create_message_move_base_goal((pos.x, pos.y, pos.z), ori)
+                return self.create_message_move_base_goal(pos, ori)
 
         self.mb_scheduler.append_goal(inner)
 
@@ -150,8 +168,8 @@ class MobileClient():
         self.mb_scheduler.cancel()
 
 def main():
-    # rc = rlp.Ros('localhost', port=9090)
-    client = rlp.Ros('10.244.1.176', port=9090)
+    # rc = roslibpy.Ros('localhost', port=9090)
+    client = roslibpy.Ros('10.244.1.176', port=9090)
     client.on_ready(lambda: print('is ROS connected: ', client.is_connected))
     client.run()
 
@@ -166,7 +184,7 @@ def main():
     ms.start() ## make goal appended to queue, executable
 #     ms.set_goal_relative_xy(0.5, 0, True) ## set scheduler a goal that go ahead 0.5 from robot body
 #     ms.set_goal_relative_xy(-0.5, 1) ## relative (x:front:-0.5, y:left:1)
-    ms.set_goal(np.quaternion(0,-0.4,-0.6,0), quaternion.from_euler_angles(0,0,1.0))
+    ms.set_goal(ms.get_vec_q(-0.4,-0.6,0), ms.get_rot_q(0,0,math.pi/2))
     time.sleep(30)
 #     ms.set_goal_relative_xy(0.5, 0, True)
 #     time.sleep(30)

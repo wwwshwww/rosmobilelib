@@ -1,18 +1,18 @@
 [tool.poetry]
 name = "rosmobilelib"
-version = "0.1.0"
+version = "0.1.2"
 description = "rosmobilelib"
-authors = ["moyashy <www.shinderu.www@gmail.com>"]
+authors = ["moyash <www.shinderu.www@gmail.com>"]
 readme = "README.md"
 homepage = "https://github.com/wwwshwww"
-repositpry = "https://github.com/wwwshwww/rosmobilelib"
+repository = "https://github.com/wwwshwww/rosmobilelib"
 license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.5"
 numpy = "^1.18.4"
-roslibpy = "^1.0.0"
 numpy-quaternion = "2019.12.11.22.25.52"
+roslibpy = "^1.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

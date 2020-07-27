@@ -4,6 +4,8 @@ import roslibpy.actionlib
 from threading import Timer
 from collections import deque
 
+from typing import List
+
 __all__ = ['ActionScheduler', 'TimeSynchronizer']
 
 roslibpy.actionlib.DEFAULT_CONNECTION_TIMEOUT = 10
@@ -71,7 +73,7 @@ class TimeSynchronizer():
             self.queue.append(message)
             self.sync.synchronize()
 
-    def __init__(self, topics: list, callback: callable, queue_size: int, allow_headerless: float=None):
+    def __init__(self, topics: List[rlp.Topic], callback: callable, queue_size: int=None, allow_headerless: float=0.1):
         self.listeners = [TimeSynchronizer.Subscriber(self, s, queue_size) for s in topics]
         self.callback = callback
         self.allow_headerless = allow_headerless
