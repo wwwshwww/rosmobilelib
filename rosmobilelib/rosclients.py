@@ -6,10 +6,10 @@ import math
 import quaternion # numpy-quaternion
 import time
 
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Sequence
 
 class CameraListener():
-    def __init__(self, ros_client: roslibpy.Ros, callback: callable, *topics: str, queue_size: int=100, allow_headerless: float=0.1):
+    def __init__(self, ros_client: roslibpy.Ros, callback: callable, topics: Sequence[str], queue_size: int=100, allow_headerless: float=0.1):
         msg_type = 'sensor_msgs/CompressedImage'
         self.client_callback = callback
         self.tps = [roslibpy.Topic(ros_client, name, msg_type) for name in topics]
