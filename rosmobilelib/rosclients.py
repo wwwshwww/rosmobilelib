@@ -1,4 +1,4 @@
-from .rostools import ActionScheduler, TimeSynchronizer, ToCv
+from .ros_utils import ActionScheduler, TimeSynchronizer, ToCv
 
 import roslibpy
 import numpy as np
@@ -94,9 +94,11 @@ class MobileClient():
         goal_orient = base_orient*rel_orient
         return goal_vec, goal_orient
 
+    @staticmethod
     def get_vec_q(x: float, y: float, z: float) -> np.quaternion:
         return np.quaternion(0,x,y,z)
 
+    @staticmethod
     def get_rot_q(x: float, y: float, z: float) -> np.quaternion:
         return quaternion.from_euler_angles(x,y,z)
 
@@ -142,7 +144,7 @@ class MobileClient():
         return roslibpy.Message(message)
 
     ## set goal message that simple ahead pose
-    def set_goal_relative_xy(self, x, y, angle=None, is_dynamic=False):
+    def set_goal_relative_xy(self, x, y, angle=None, is_dynamic=True):
         rel_pos_2d = np.quaternion(0,x,y,0)
         rel_ori = quaternion.from_euler_angles(0, 0, math.atan2(x,y))
         pos, ori = self.get_base_pose_from_body(rel_pos_2d, rel_ori*self.orientation)

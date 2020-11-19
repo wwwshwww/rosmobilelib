@@ -7,7 +7,7 @@ import cv2
 
 from typing import List, Dict
 
-__all__ = ['ActionScheduler', 'TimeSynchronizer']
+__all__ = ['ActionScheduler', 'TimeSynchronizer', 'ToCV']
 
 roslibpy.actionlib.DEFAULT_CONNECTION_TIMEOUT = 10
 
@@ -115,7 +115,7 @@ class TimeSynchronizer():
         
         self.callback(*result)
 
-def ToCv():
+class ToCv():
     def __init__(self):
         self.cvdepth_to_npdepth = {cv2.CV_8U: 'uint8',
                                     cv2.CV_8S: 'int8',
